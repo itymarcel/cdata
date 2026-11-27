@@ -1,0 +1,140 @@
+.vitals {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.vitals--error {
+  grid-column: 2 / -1;
+  display: block;
+  padding: 14px;
+  color: var(--serious);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.vital {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  min-width: 0;
+  transition: border-color 120ms;
+}
+.vital:hover {
+  border-color: var(--border-strong);
+}
+.vital:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* The selected tab joins the panel below it. */
+.vital.is-active {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.vital__globe {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.3;
+  align-self: center;
+}
+.vital.is-active .vital__globe {
+  stroke: var(--accent);
+}
+.vital__map-title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.vital__layers {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.vital--skeleton {
+  height: 92px;
+  background: linear-gradient(90deg, var(--surface-1), var(--surface-2), var(--surface-1));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.vital__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.vital__label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vital__value {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+.vital__number {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.vital__unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vital__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 6px;
+}
+.vital__context {
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 0;
+  line-height: 1.3;
+}
+.vital__asof {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 2px;
+}
+.sparkline {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1280px) {
+  .vitals {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .vitals--error {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .vitals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vital__number {
+    font-size: 19px;
+  }
+}

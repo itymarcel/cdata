@@ -1,0 +1,30 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Local environment (keep the example)
+.env
+.env.*
+!.env.example
+
+# SQLite cache of upstream data, rebuilt on first start (includes -shm/-wal)
+data/*.sqlite*
+
+# Carbon Majors data: non-commercial licence, not for redistribution
+data/carbon-majors/
+
+# Logs and crash dumps
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Editors and OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Per-user Claude Code settings (shared settings in .claude/settings.json stay tracked)
+.claude/settings.local.json

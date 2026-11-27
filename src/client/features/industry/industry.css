@@ -1,0 +1,147 @@
+.industry-panel .panel__header {
+  flex-wrap: wrap;
+}
+.ranking,
+.tab-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+.tab-chart .chart {
+  min-height: 120px;
+}
+.tab-chart__lede {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.ranking__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ranking__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ranking__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px minmax(114px, 174px) 1fr 84px;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  cursor: pointer;
+  text-align: left;
+}
+.ranking__row:hover {
+  background: var(--surface-2);
+}
+.ranking__row.is-selected {
+  background: var(--accent-soft);
+}
+.ranking__rank {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.ranking__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ranking__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Flags and logos share an 18 px slot so names line up whichever one a row has. */
+.flag,
+.producer-logo {
+  flex: none;
+  width: 18px;
+  border-radius: 2px;
+}
+.flag {
+  height: 13.5px;
+  object-fit: cover;
+  /* Commons flags keep their own ratio (the USSR's is 2:1); emblems sit at the hoist. */
+  object-position: left center;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.flag--empty {
+  box-shadow: none;
+}
+.producer-logo {
+  height: 18px;
+  padding: 2px;
+  object-fit: contain;
+  /* Most favicons and logos are drawn for light backgrounds. */
+  background: #fff;
+  border-radius: var(--radius-sm);
+}
+.producer-logo--initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.ranking__bar-track {
+  height: 10px;
+  display: flex;
+  align-items: center;
+}
+.ranking__bar {
+  display: block;
+  height: 10px;
+  min-width: 2px;
+  background: var(--series-2);
+  border-radius: 0 4px 4px 0;
+  transition: width 200ms ease-out;
+}
+.ranking__row.is-selected .ranking__bar {
+  background: var(--accent);
+}
+.ranking__value {
+  text-align: right;
+  font-size: 12px;
+}
+.ranking__row--static {
+  cursor: default;
+}
+.ranking__row--static:hover {
+  background: transparent;
+}
+.not-connected {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 2px;
+}
+.not-connected p {
+  margin: 0;
+  max-width: 60ch;
+}
+.not-connected .btn {
+  margin-top: 6px;
+  text-decoration: none;
+}

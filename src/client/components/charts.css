@@ -1,0 +1,111 @@
+.chart {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+.chart__grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+.chart__ref {
+  stroke: var(--axis);
+  stroke-width: 1;
+}
+.chart__tick {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.chart__ylabel {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+.chart__cursor {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.8;
+}
+.chart__crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+.chart__tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(14, 17, 22, 0.96);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  min-width: 140px;
+  font-size: 12px;
+  box-shadow: var(--shadow);
+  z-index: 5;
+}
+.chart__tooltip-x {
+  color: var(--text-muted);
+  margin-bottom: 3px;
+  font-family: var(--font-mono);
+}
+.chart__tooltip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+.chart__tooltip-row strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.chart__key {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.chart-legend__key {
+  width: 16px;
+  height: 0;
+  border-top: 2px solid currentColor;
+}
+.chart-legend__key--dashed {
+  border-top-style: dashed;
+}
+.chart-legend__key--dotted {
+  border-top-style: dotted;
+}
+.chart-legend__key--marker {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+.chart-legend__key--swatch {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 2px;
+  background: currentColor;
+}
