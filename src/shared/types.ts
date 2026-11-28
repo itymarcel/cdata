@@ -40,7 +40,9 @@ export type SourceId =
   | "berkeleyEarth"
   | "seaLevelLong"
   | "enso"
-  | "volcanoes";
+  | "volcanoes"
+  | "climateAction"
+  | `trade.${TradeCommodity}`;
 
 export interface SourceMeta {
   id: SourceId;
@@ -265,6 +267,108 @@ export interface CountrySeries {
   totalGhg: (number | null)[];
   consumptionCo2: (number | null)[];
   population: (number | null)[];
+}
+
+// ---------------------------------------------------------------------------
+// Trade flows (UN Comtrade): who ships clean tech, fossil fuels and chip inputs to whom
+// ---------------------------------------------------------------------------
+
+export const TRADE_COMMODITIES = [
+  "solar",
+  "batteries",
+  "evs",
+  "wind",
+  "crude",
+  "coal",
+  "lng",
+  "polysilicon",
+  "wafers",
+  "gases",
+  "hf",
+  "chipTools",
+  "chips",
+] as const;
+export type TradeCommodity = (typeof TRADE_COMMODITIES)[number];
+/** How goods are grouped in the picker and coloured on the map. */
+export type TradeGroup = "clean" | "fossil" | "chips";
+
+/** One exporter → importer flow of a commodity in one year, in US dollars. */
+export interface TradeFlow {
+  from: string;
+  to: string;
+  value: number;
+  /**
+   * Whose customs record the value is: the exporter's own (FOB), or, where the
+   * exporter's records aren't used or don't exist, the importer's (CIF, "mirror").
+   */
+  reportedBy: "exporter" | "importer";
+}
+
+export interface TradeFlowsData {
+  commodity: TradeCommodity;
+  /** HS code queried, e.g. "854143". */
+  hs: string;
+  year: number;
+  /** Exports to the world, summed over every country that reported them for `year`. */
+  worldExports: number;
+  reporters: number;
+  /** The largest exporters by their own reported exports to the world. */
+  exporters: { iso3: string; value: number }[];
+  /** Importers whose import records were read to fill in exporters that don't report. */
+  importers: { iso3: string; value: number }[];
+  /** Countries in `flows` that filed no export figure for `year`, with what the importers read recorded from them. */
+  silentExporters: { iso3: string; value: number }[];
+  /** The previous year, summed over countries that reported both years, for a like-for-like change. */
+  previous: { year: number; value: number; current: number; reporters: number } | null;
+  flows: TradeFlow[];
+  /** Comtrade's country names, by ISO3. */
+  names: Record<string, string>;
+}
+
+/** What the map's flows layer receives: the flows, where to draw them, and what they add up to. */
+export interface FlowsView {
+  commodity: TradeCommodity;
+  label: string;
+  group: TradeGroup;
+  hs: string;
+  year: number;
+  flows: TradeFlow[];
+  /** Label point and name per country in `flows`. Flows to places we can't locate are dropped. */
+  places: Record<string, { name: string; lon: number; lat: number }>;
+  worldExports: number;
+  /** The largest exporters' own reported exports to the world, for "x% of its exports". */
+  exporters: { iso3: string; value: number }[];
+  facts: StoryFact[];
+}
+
+// ---------------------------------------------------------------------------
+// Climate action: capacity, adoption, land (OWID compilations of IRENA, IEA, FAO, UNEP-WCMC)
+// ---------------------------------------------------------------------------
+
+export const ACTION_DATASETS = ["solar", "wind", "evShare", "forestChange", "afforestation", "protectedLand"] as const;
+export type ActionDataset = (typeof ACTION_DATASETS)[number];
+
+/** A dense year × country table; values[c][y] aligns with years[y]. */
+export interface CountryTableData {
+  years: number[];
+  countries: CountryInfo[];
+  values: (number | null)[][];
+}
+
+export type ClimateActionData = Record<ActionDataset, CountryTableData>;
+
+/** One per-country measure ready for the map: the catalog's description plus its table. */
+export interface MapMeasureData {
+  id: string;
+  label: string;
+  short: string;
+  unit: string;
+  decimals: number;
+  evidence: Evidence;
+  source: { name: string; publisher: string; url: string };
+  years: number[];
+  countries: CountryInfo[];
+  values: (number | null)[][];
 }
 
 // ---------------------------------------------------------------------------
@@ -589,6 +693,61 @@ export interface VitalHistory {
   defaultOverlays: OverlayId[];
   /** Fit a quadratic as well as a line, to show acceleration (sea level). */
   acceleration?: boolean;
+  /** Plain-language reading of the data, computed from the series above. Absent when the inputs are missing. */
+  story?: VitalStory;
+}
+
+/**
+ * Text in runs; `em` runs are the figures a reader should see first. An `em`
+ * with a `note` opens that note (by id) from the story's `notes`.
+ */
+export type RichText = (string | { em: string; note?: string })[];
+
+/** A passage of an assessment report that a sentence rests on. */
+export interface Citation {
+  /** e.g. "IPCC AR6 WG1 SPM, A.2.1". */
+  label: string;
+  /** Link to the passage (PDF with #page=). */
+  url: string;
+  /** The passage verbatim, so a reader can check our plain wording against it. */
+  quote: string;
+}
+
+/**
+ * One line of context. Either computed from data (`basis` names the series and
+ * calculation) or a plain-language reading of a report (`cite`), never both:
+ * every number in a cited line appears in its quote.
+ */
+export interface NoteLine {
+  text: RichText;
+  basis?: string;
+  cite?: Citation;
+  /** Another vital sign this line connects to. */
+  link?: VitalId;
+}
+
+/** Context behind a headline figure or a fact: what it means, why it matters, how we know. */
+export interface StoryNote {
+  id: string;
+  /** The figure or question the note answers, e.g. "54% higher". */
+  title: string;
+  meaning: NoteLine[];
+  matters: NoteLine[];
+  howWeKnow: NoteLine[];
+}
+
+export interface StoryFact {
+  text: RichText;
+  /** Which series and calculation the fact comes from. */
+  basis: string;
+  /** Id of a note in the story's `notes` that explains this fact. */
+  note?: string;
+}
+
+export interface VitalStory {
+  headline: RichText;
+  facts: StoryFact[];
+  notes: StoryNote[];
 }
 
 export interface ContextData {

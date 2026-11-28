@@ -145,3 +145,55 @@
   margin-top: 6px;
   text-decoration: none;
 }
+
+/* Climate action: four small charts. */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px 16px;
+  overflow-y: auto;
+}
+.action-chart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.action-chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.action-chart__title {
+  font-weight: 600;
+}
+.action-chart__figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 12px;
+}
+.action-chart__figures strong {
+  font-size: 15px;
+}
+.action-chart__key {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.action-chart__source {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.action-chart__source a {
+  color: var(--text-secondary);
+}

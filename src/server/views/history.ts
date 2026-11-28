@@ -25,6 +25,7 @@ import { daysInYear, toDecimalYear } from "@shared/time.ts";
 import type { SourceStore } from "../lib/source-store.ts";
 import { mean, round } from "../lib/stats.ts";
 import type { Co2Column, OwidTable } from "../sources/owid.ts";
+import { carbonBudgetStory, co2Story, era5Story, oceanHeatStory, seaIceStory, seaLevelStory, temperatureStory } from "./insights.ts";
 
 export const VITAL_IDS: VitalId[] = ["co2", "temperature", "era5", "seaIce", "seaLevel", "oceanHeat", "carbonBudget"];
 export const isVitalId = (v: string): v is VitalId => (VITAL_IDS as string[]).includes(v);
@@ -38,6 +39,9 @@ function from(env: Envelope<unknown>): Pick<HistorySeries, "source" | "evidence"
 }
 
 const yearsAgo = (n: number) => Math.floor(toDecimalYear(new Date()) - n);
+
+/** A story only when its builder had enough to say. */
+const story = (s: VitalHistory["story"] | null) => (s ? { story: s } : {});
 
 /**
  * The long view of each vital sign: the instrumental record plus whatever
@@ -72,7 +76,7 @@ export async function buildHistory(store: SourceStore, id: VitalId): Promise<Vit
 }
 
 async function co2History(safe: Safe): Promise<VitalHistory> {
-  const [mlo, ice] = await Promise.all([safe<Co2Data>("co2"), safe<Co2IceCoreData>("co2IceCore")]);
+  const [mlo, ice, igcc] = await Promise.all([safe<Co2Data>("co2"), safe<Co2IceCoreData>("co2IceCore"), safe<IgccData>("igcc")]);
   const series: HistorySeries[] = [];
   const references: VitalHistory["references"] = [];
   if (ice) {
@@ -138,6 +142,7 @@ async function co2History(safe: Safe): Promise<VitalHistory> {
     defaultRange: "1850",
     overlays: ["references", "trend", "enso", "volcanoes", "events"],
     defaultOverlays: ["references", "events"],
+    ...story(mlo ? co2Story(mlo.data.monthly, ice?.data.points ?? null, igcc?.data ?? null) : null),
   };
 }
 
@@ -239,12 +244,14 @@ async function temperatureHistory(safe: Safe): Promise<VitalHistory> {
     defaultRange: "1850",
     overlays: ["references", "uncertainty", "trend", "enso", "volcanoes", "events"],
     defaultOverlays: ["references", "uncertainty", "events"],
+    ...story(hadcrut ? temperatureStory(hadcrut.data.annual, hadcrut.data.monthly) : null),
   };
 }
 
 async function era5History(safe: Safe): Promise<VitalHistory> {
   const era5 = await safe<Era5DailyData>("era5Daily");
   const series: HistorySeries[] = [];
+  let era5Insight: VitalHistory["story"] | null = null;
   if (era5) {
     const daily: Point[] = [];
     for (const { year, values } of era5.data.years) {
@@ -267,6 +274,7 @@ async function era5History(safe: Safe): Promise<VitalHistory> {
       note: "Drawn for the current year only.",
       ...from(era5),
     });
+    era5Insight = era5Story(daily, clim);
   }
   return {
     id: "era5",
@@ -286,6 +294,7 @@ async function era5History(safe: Safe): Promise<VitalHistory> {
     defaultMode: "seasonal",
     overlays: ["trend", "enso", "volcanoes", "events"],
     defaultOverlays: [],
+    ...story(era5Insight),
   };
 }
 
@@ -293,6 +302,7 @@ async function seaIceHistory(safe: Safe): Promise<VitalHistory> {
   const ice = await safe<SeaIceData>("seaIce");
   const series: HistorySeries[] = [];
   const references: VitalHistory["references"] = [];
+  let insight: VitalHistory["story"] | null = null;
   if (ice) {
     const meta = from(ice);
     const { north, south } = ice.data;
@@ -312,6 +322,7 @@ async function seaIceHistory(safe: Safe): Promise<VitalHistory> {
     const baseMin = mean(north.annualMinimum.filter(([y]) => y >= 1981 && y <= 2010).map(([, v]) => v));
     if (baseMin !== null)
       references.push({ y: round(baseMin, 2), label: "1981–2010 average minimum", note: "Mean of the Arctic yearly minima, 1981–2010." });
+    insight = seaIceStory(north.daily, north.annualMinimum, baseMin, south.daily);
   }
   return {
     id: "seaIce",
@@ -330,6 +341,7 @@ async function seaIceHistory(safe: Safe): Promise<VitalHistory> {
     defaultRange: "1979",
     overlays: ["references", "trend", "enso", "events"],
     defaultOverlays: ["references"],
+    ...story(insight),
   };
 }
 
@@ -378,6 +390,7 @@ async function seaLevelHistory(safe: Safe): Promise<VitalHistory> {
     overlays: ["references", "trend", "enso", "events"],
     defaultOverlays: ["trend"],
     acceleration: true,
+    ...story(sat ? seaLevelStory(sat.data.series, long?.data.churchWhite ?? null, toDecimalYear(new Date())) : null),
   };
 }
 
@@ -413,6 +426,7 @@ async function oceanHeatHistory(safe: Safe): Promise<VitalHistory> {
     defaultRange: "1955",
     overlays: ["trend", "enso", "volcanoes", "events"],
     defaultOverlays: ["trend"],
+    ...story(ohc ? oceanHeatStory(ohc.data.annual) : null),
   };
 }
 
@@ -420,6 +434,7 @@ async function carbonBudgetHistory(safe: Safe): Promise<VitalHistory> {
   const [owid, igcc] = await Promise.all([safe<OwidTable<Co2Column>>("owidCo2"), safe<IgccData>("igcc")]);
   const series: HistorySeries[] = [];
   const references: VitalHistory["references"] = [];
+  let cumulativePoints: Point[] = [];
   if (owid) {
     const w = owid.data.countries.findIndex((c) => c.iso3 === "WLD");
     const fossil = owid.data.columns.co2[w] ?? [];
@@ -432,6 +447,7 @@ async function carbonBudgetHistory(safe: Safe): Promise<VitalHistory> {
       sum += (f + (land[i] ?? 0)) / 1000;
       cumulative.push([y + 1, round(sum, 1)]); // emitted by the end of year y
     });
+    cumulativePoints = cumulative;
     series.push({
       id: "cumulative",
       label: "Emitted since 1850 (fossil + land use)",
@@ -486,6 +502,7 @@ async function carbonBudgetHistory(safe: Safe): Promise<VitalHistory> {
     defaultRange: "1850",
     overlays: ["references", "trend", "events"],
     defaultOverlays: ["references", "events"],
+    ...story(igcc ? carbonBudgetStory(cumulativePoints, igcc.data, toDecimalYear(new Date())) : null),
   };
 }
 

@@ -1,8 +1,10 @@
+import { usd } from "@shared/trade.ts";
 import { compareEmissions } from "../../lib/compare.ts";
 import { formatCompact, formatNumber } from "../../lib/format.ts";
 import { DISASTER_LABEL, type HoverInfo } from "./useMapLayers.ts";
 
 const PER_CAPITA = new Set(["co2_per_capita"]);
+const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 
 export function MapTooltip({ info }: { info: HoverInfo }) {
   return (
@@ -82,6 +84,45 @@ function Content({ info }: { info: HoverInfo }) {
           <div className="muted">World Weather Attribution · click to show in the graph</div>
         </>
       );
+    case "action": {
+      const m = info.measure;
+      const s = info.shown;
+      return (
+        <>
+          <strong>{info.name}</strong>
+          <div className="muted">{m.short}</div>
+          <div className="map-tooltip__value mono">
+            {s ? formatNumber(s.value, m.decimals) : "No data"} {s && <span className="muted">{m.unit}</span>}
+          </div>
+          {s && <div className="muted">{s.year}{info.rank ? ` · ${ordinal(info.rank)} of ${info.of} countries` : ""}</div>}
+          <div className="muted">{m.source.publisher} · click to select</div>
+        </>
+      );
+    }
+    case "flow": {
+      const { flow, view, exporterTotal } = info;
+      const name = (iso3: string) => view.places[iso3]?.name ?? iso3;
+      return (
+        <>
+          <strong>
+            {name(flow.from)} → {name(flow.to)}
+          </strong>
+          <div className="muted">
+            {view.label} · {view.year}
+          </div>
+          <div className="map-tooltip__value mono">{usd(flow.value)}</div>
+          {exporterTotal ? (
+            <div className="secondary">
+              {Math.round((flow.value / exporterTotal) * 100)}% of {name(flow.from)}’s reported exports
+            </div>
+          ) : null}
+          <div className="muted">
+            {flow.reportedBy === "exporter" ? `As declared by ${name(flow.from)} (exports, FOB)` : `As recorded by ${name(flow.to)} (imports, CIF)`}
+          </div>
+          <div className="muted">UN Comtrade · click to see one country’s routes</div>
+        </>
+      );
+    }
     case "disaster":
       return (
         <>

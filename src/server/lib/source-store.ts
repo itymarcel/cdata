@@ -163,8 +163,8 @@ export class SourceStore {
     }
     e.timer = setTimeout(async () => {
       await this.refresh(id);
-      // Back off to a quarter of the cadence (min 1 min) after a failure.
-      const next = e.error ? Math.max(60_000, e.def.meta.refreshMs / 4) : e.def.meta.refreshMs;
+      // After a failure, retry at the source's own pace, else a quarter of its cadence (min 1 min).
+      const next = e.error ? (e.def.retryMs ?? Math.max(60_000, e.def.meta.refreshMs / 4)) : e.def.meta.refreshMs;
       this.schedule(id, next);
     }, delayMs);
   }

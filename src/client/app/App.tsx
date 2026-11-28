@@ -1,3 +1,4 @@
+import { AskBar } from "../features/ask/AskBar.tsx";
 import { VitalExplorer } from "../features/explorer/VitalExplorer.tsx";
 import { ConnectionsPanel } from "../features/graph/ConnectionsPanel.tsx";
 import { IndustryPanel } from "../features/industry/IndustryPanel.tsx";
@@ -62,6 +63,7 @@ export function App() {
         </ErrorBoundary>
       </div>
       <SourcesModal />
+      <AskBar />
     </div>
   );
 }

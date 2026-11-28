@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
 import type {
   CarbonMajorsData,
   Co2Data,
@@ -14,6 +14,9 @@ import type {
   Envelope,
   FacilitiesData,
   FiresData,
+  FlowsView,
+  MapMeasureData,
+  TradeCommodity,
   GraphData,
   NaturalEventsData,
   PledgeGap,
@@ -25,6 +28,7 @@ import type {
   VitalSign,
   WorldByFuel,
 } from "@shared/types.ts";
+import type { AskResponse, Catalog, Query, QueryResponse } from "@shared/query.ts";
 import type { FeatureCollection, Geometry } from "./geo-types.ts";
 
 export class ApiError extends Error {
@@ -41,6 +45,15 @@ async function get<T>(path: string): Promise<T> {
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(res.status, body.error ?? res.statusText);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new ApiError(res.status, err.error ?? res.statusText);
   }
   return res.json() as Promise<T>;
 }
@@ -122,6 +135,37 @@ export const useCountries = () =>
     staleTime: Infinity,
   });
 
+/** Exporter → importer trade flows for one commodity (UN Comtrade, latest year with good coverage). */
+export const useFlows = (commodity: TradeCommodity, enabled: boolean) =>
+  useQuery({
+    queryKey: ["flows", commodity],
+    queryFn: () => get<Envelope<FlowsView | null>>(`/api/flows/${commodity}`),
+    staleTime: 60 * MINUTE,
+    // `data: null` means the server is still reading Comtrade: ask again shortly.
+    refetchInterval: (q) => (q.state.data && q.state.data.data === null ? 15_000 : false),
+    enabled,
+  });
+
+/** Any per-country catalog measure as a year × country table, for the map. */
+export const useMapMeasure = (id: string | null) =>
+  useQuery({
+    queryKey: ["map-measure", id],
+    queryFn: () => get<MapMeasureData>(`/api/map/${id}`),
+    staleTime: 60 * MINUTE,
+    placeholderData: keepPreviousData,
+    enabled: id !== null,
+  });
+
+/** Several map measures at once (same cache entries as `useMapMeasure`). */
+export const useMapMeasures = (ids: string[]) =>
+  useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ["map-measure", id],
+      queryFn: () => get<MapMeasureData>(`/api/map/${id}`),
+      staleTime: 60 * MINUTE,
+    })),
+  });
+
 export const useEmissionsMatrix = (metric: EmissionsMetric) =>
   useQuery({
     queryKey: ["emissions", "matrix", metric],
@@ -171,13 +215,20 @@ export interface TimelineResponse {
 }
 /** Events change when a new study, COP or record lands: hourly is plenty. */
 /** Long records change at most daily; the explorer can keep them for a while. */
-export const useHistory = (id: VitalId | null) =>
-  useQuery({
-    queryKey: ["history", id],
-    queryFn: () => get<VitalHistory>(`/api/history/${id}`),
-    enabled: id !== null,
-    staleTime: 10 * MINUTE,
-  });
+export const historyQuery = (id: VitalId | null) => ({
+  queryKey: ["history", id],
+  queryFn: () => get<VitalHistory>(`/api/history/${id}`),
+  enabled: id !== null,
+  staleTime: 10 * MINUTE,
+});
+export const useHistory = (id: VitalId | null) => useQuery(historyQuery(id));
+
+/** What the Ask bar can address: measures, countries, lists. */
+export const useCatalog = (enabled = true) =>
+  useQuery({ queryKey: ["catalog"], queryFn: () => get<Catalog>("/api/catalog"), staleTime: 5 * MINUTE, enabled });
+
+export const runQuery = (query: Query) => post<QueryResponse>("/api/query", query);
+export const askModel = (text: string) => post<AskResponse>("/api/ask", { text });
 
 export const useClimateContext = (enabled = true) =>
   useQuery({ queryKey: ["context"], queryFn: () => get<ContextData>("/api/context"), staleTime: 60 * MINUTE, enabled });

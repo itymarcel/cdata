@@ -33,12 +33,13 @@
 /* Header: what this is, how it stands now, and the range controls. */
 .xp-head {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 16px;
   flex-wrap: wrap;
 }
 .xp-hero {
+  flex: 1 1 420px;
   min-width: 0;
 }
 .xp-hero__title {
@@ -470,4 +471,290 @@
   .xp-side {
     overflow: visible;
   }
+}
+
+/* Story: the plain-language headline and the key facts behind it. */
+.xp-headline {
+  margin: 2px 0 0;
+  max-width: 62ch;
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.xp-headline strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+.xp-hero__now {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.xp-hero__value .xp-hero__title {
+  margin-right: 4px;
+}
+.xp-side__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-bottom: 2px;
+  background: var(--surface-1);
+}
+.xp-side__tabs .segmented {
+  width: 100%;
+}
+.xp-side__tabs .segmented button {
+  flex: 1;
+}
+.xp-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.xp-fact {
+  padding-left: 10px;
+  border-left: 2px solid var(--border-strong);
+}
+.xp-fact__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.xp-fact__text strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.xp-fact__basis {
+  margin: 3px 0 0;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.xp-sources li + li {
+  margin-top: 2px;
+}
+
+/* The latest value, labelled where the line ends. */
+.xp-latest__label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--surface-1);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+/* Context notes: headline figures open a card; facts open in place. */
+.xp-headline-wrap {
+  position: relative;
+}
+.xp-em {
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 2px;
+}
+.xp-em:hover,
+.xp-em.is-open {
+  text-decoration-style: solid;
+  text-decoration-color: var(--accent);
+}
+.xp-em:focus-visible,
+.xp-why:focus-visible,
+.xp-info:focus-visible,
+.xp-note__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.xp-why {
+  margin-left: 10px;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  vertical-align: 3px;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.xp-why:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.xp-note-card {
+  position: fixed;
+  z-index: 100;
+  overflow: auto;
+  padding: 12px 16px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.xp-note-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.xp-note-card__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.xp-note-card__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.xp-note-card__tabs button {
+  padding: 3px 9px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.xp-note-card__tabs button[aria-selected="true"] {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.xp-note-card__close {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.xp-note-card__close:hover {
+  color: var(--text-primary);
+  background: var(--surface-3);
+}
+.xp-note__section + .xp-note__section {
+  margin-top: 10px;
+}
+.xp-note__heading {
+  margin: 8px 0 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.xp-note__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.xp-note__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.xp-note__text strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.xp-note__link {
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.xp-note__link:hover {
+  text-decoration: underline;
+}
+.xp-cite {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.xp-cite summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.xp-cite summary:hover {
+  color: var(--text-secondary);
+}
+.xp-cite__quote {
+  margin: 6px 0 4px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border-left: 2px solid var(--border-strong);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.xp-cite__link {
+  color: var(--accent);
+}
+.xp-info {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 6px;
+  padding: 0;
+  font: italic 600 10px/1 Georgia, serif;
+  vertical-align: 1px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.xp-info:hover,
+.xp-info.is-open {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.xp-fact__note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+.xp-fact__note .xp-note__heading:first-child {
+  margin-top: 6px;
 }

@@ -1,6 +1,7 @@
 import { Panel } from "../../components/Panel.tsx";
 import { Segmented } from "../../components/Segmented.tsx";
 import { useDashboard, type BottomTab } from "../../state/store.ts";
+import { ClimateAction } from "./ClimateAction.tsx";
 import { EmittersRanking } from "./EmittersRanking.tsx";
 import { EnergyMixChart } from "./EnergyMixChart.tsx";
 import { ForestLoss } from "./ForestLoss.tsx";
@@ -14,9 +15,10 @@ const TABS: { value: BottomTab; label: string }[] = [
   { value: "fuels", label: "By fuel" },
   { value: "energy", label: "Energy mix" },
   { value: "forests", label: "Forests" },
+  { value: "action", label: "Action" },
 ];
 
-/** "Who is causing it": countries, fuels, power systems and land. */
+/** "Who is causing it" (countries, fuels, power systems, land) and what is being done about it. */
 export function IndustryPanel() {
   const tab = useDashboard((s) => s.bottomTab);
   const setTab = useDashboard((s) => s.setBottomTab);
@@ -31,6 +33,7 @@ export function IndustryPanel() {
       {tab === "fuels" && <WorldByFuelChart />}
       {tab === "energy" && <EnergyMixChart />}
       {tab === "forests" && <ForestLoss />}
+      {tab === "action" && <ClimateAction />}
     </Panel>
   );
 }

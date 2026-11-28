@@ -1,8 +1,10 @@
 import { useEmissionsMatrix, useSources } from "../api/queries.ts";
+import { ASK_SHORTCUT } from "../features/ask/AskBar.tsx";
 import { useDashboard } from "../state/store.ts";
 
 export function Header() {
   const setSourcesOpen = useDashboard((s) => s.setSourcesOpen);
+  const setAskOpen = useDashboard((s) => s.setAskOpen);
   const country = useDashboard((s) => s.country);
   const selectCountry = useDashboard((s) => s.selectCountry);
   const metric = useDashboard((s) => s.metric);
@@ -28,6 +30,14 @@ export function Header() {
             <span className="muted">Selected</span> {countryName} <span aria-hidden="true">✕</span>
           </button>
         )}
+        <button type="button" className="btn ask-trigger" onClick={() => setAskOpen(true)} aria-keyshortcuts="Meta+K Control+K /">
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2.4" />
+            <path d="M16.5 16.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+          Ask the data
+          <kbd>{ASK_SHORTCUT}</kbd>
+        </button>
         <button type="button" className="btn" onClick={() => setSourcesOpen(true)}>
           Data sources
           {data && (

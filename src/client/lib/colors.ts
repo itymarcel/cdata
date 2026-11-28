@@ -96,3 +96,24 @@ export function anomalyColor(anomaly: number, maxAbs: number): string {
   const i = Math.min(ramp.length - 2, Math.floor(x));
   return interpolateRgb(ramp[i]!, ramp[i + 1]!)(x - i);
 }
+
+/** Climate action, sequential on a dark ground: deep teal → bright leaf green. Distinct from the emissions ramp. */
+const ACTION_STOPS = ["#0d2226", "#0f3b3d", "#12594f", "#16795e", "#2a9d68", "#5cc173", "#a6df86", "#e9f9c9"];
+export function actionColor(t: number): string {
+  const x = Math.max(0, Math.min(1, t)) * (ACTION_STOPS.length - 1);
+  const i = Math.min(ACTION_STOPS.length - 2, Math.floor(x));
+  return interpolateRgb(ACTION_STOPS[i]!, ACTION_STOPS[i + 1]!)(x - i);
+}
+
+/** Net change, t in [−1, 1]: loss in the tree-cover-loss pink, gain in the action green, grey at zero. */
+const LOSS_STOPS = ["#2b2a2e", "#5b2d47", "#9a3d6c", "#dc6699"];
+const GAIN_STOPS = ["#2b2a2e", "#1d5a4d", "#2a9d68", "#a6df86"];
+export function divergingActionColor(t: number): string {
+  const ramp = t < 0 ? LOSS_STOPS : GAIN_STOPS;
+  const x = Math.min(1, Math.abs(t)) * (ramp.length - 1);
+  const i = Math.min(ramp.length - 2, Math.floor(x));
+  return interpolateRgb(ramp[i]!, ramp[i + 1]!)(x - i);
+}
+
+/** Trade-flow arcs: clean technology in cyan, fossil fuels in violet, chips in pink. None collides with the fire yellow or emissions orange. */
+export const FLOW_COLOR = { clean: "#4fd8d0", fossil: "#b9a4ff", chips: "#ff8fd8" } as const;

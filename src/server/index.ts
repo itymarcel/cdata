@@ -1,4 +1,5 @@
 import index from "../client/index.html";
+import localModelHarness from "../client/dev/local-model.html";
 import { config } from "./config.ts";
 import { Cache } from "./lib/cache.ts";
 import { logger } from "./lib/logger.ts";
@@ -10,11 +11,15 @@ const cache = new Cache(config.cacheDb);
 const store = new SourceStore(cache, sources);
 if (config.schedulerEnabled) store.startScheduler();
 
+/** The in-browser model's evaluation harness (scripts/eval-ask.ts --local). */
+const devRoutes: Record<string, Bun.HTMLBundle> = config.isProduction ? {} : { "/dev/local-model": localModelHarness };
+
 const server = Bun.serve({
   port: config.port,
   development: !config.isProduction && { hmr: true, console: true },
   routes: {
     ...createApiRoutes(store),
+    ...devRoutes,
     // Everything else is the single-page app; Bun bundles it from the HTML import.
     "/*": index,
   },

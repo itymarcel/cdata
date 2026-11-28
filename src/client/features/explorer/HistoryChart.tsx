@@ -181,6 +181,15 @@ export function HistoryChart(props: Props) {
     return scaleLinear().domain([lo - pad, hi + pad]).range([plot.bottom, plot.top]).nice();
   }, [compare, win, plot.top, plot.bottom]);
 
+  // Where the main series ends, labelled on the chart: "where are we now" at a glance.
+  const latest = useMemo(() => {
+    if (seasonal) return null;
+    const p = series.find((s) => s.role === "primary");
+    const last = p?.points.at(-1);
+    if (!p || !last || last[0] < win[0] || last[0] > win[1]) return null;
+    return { t: last[0], v: last[1], color: p.color };
+  }, [seasonal, series, win]);
+
   // Trend over what's in view, on the measured series that covers most of it
   // (the primary wins ties): tide gauges for 1880 onwards, satellites from 1993.
   const trend = useMemo(() => {
@@ -265,6 +274,10 @@ export function HistoryChart(props: Props) {
   const span = win[1] - win[0];
   const fmtY = (v: number) => formatNumber(v, Math.max(0, Math.min(decimals, yTicks.length > 1 && Math.abs(yTicks[1]! - yTicks[0]!) >= 1 ? 0 : decimals)));
   const yPos = (v: number) => y(v);
+  // The latest-value label sits just above its point (below it when that is off the top);
+  // a reference label at the same height moves to the left end of its line.
+  const latestY = latest ? (y(latest.v) - 8 < plot.top + 10 ? y(latest.v) + 16 : y(latest.v) - 8) : null;
+  const dodges = (ry: number) => latestY !== null && Math.abs(ry - 4 - latestY) < 13;
   const shortUnit = unit.replace(/ (vs|since) .*$/, "");
 
   // ----- hover readout -----
@@ -415,7 +428,12 @@ export function HistoryChart(props: Props) {
                 <g key={r.label}>
                   <title>{r.note}</title>
                   <line x1={plot.left} x2={plot.right} y1={yPos(r.y)} y2={yPos(r.y)} className="xp-ref" />
-                  <text x={plot.right - 4} y={yPos(r.y) - 4} className="xp-ref__label" textAnchor="end">
+                  <text
+                    x={dodges(yPos(r.y)) ? plot.left + 4 : plot.right - 4}
+                    y={yPos(r.y) - 4}
+                    className="xp-ref__label"
+                    textAnchor={dodges(yPos(r.y)) ? "start" : "end"}
+                  >
                     {r.label}
                   </text>
                 </g>
@@ -509,6 +527,15 @@ export function HistoryChart(props: Props) {
             </g>
           )}
         </g>
+
+        {latest && (
+          <g className="xp-latest" aria-hidden="true">
+            <circle cx={x(latest.t)} cy={y(latest.v)} r={3.5} fill={latest.color} stroke="var(--surface-1)" strokeWidth={1.5} />
+            <text x={x(latest.t) - 7} y={latestY!} textAnchor="end" className="xp-latest__label" fill={latest.color}>
+              {formatNumber(latest.v, decimals)} {unit.replace(/\s+(vs|since)\b.*$/, "")}
+            </text>
+          </g>
+        )}
 
         {/* Events strip */}
         {!seasonal && available.includes("events") && (

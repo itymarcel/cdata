@@ -10,6 +10,7 @@ import { type ExplorerSettings, nowYear, useDashboard } from "../../state/store.
 import { useLiveValue } from "../vitals/useLiveBudget.ts";
 import { type ChartSeries, type CompareSeries, HistoryChart } from "./HistoryChart.tsx";
 import { Overview } from "./Overview.tsx";
+import { Headline, KeyFacts } from "./Story.tsx";
 import { STEP, annualMeans, clip, maxGapFor, ratePerYear, runningMean, toCsv } from "./transform.ts";
 import "./explorer.css";
 
@@ -117,6 +118,8 @@ function Explorer({ history, vital }: { history: VitalHistory; vital: VitalSign 
   const setExplorer = useDashboard((s) => s.setExplorer);
   const update = (patch: Partial<ExplorerSettings>) => setExplorer(history.id, patch, defaults);
   const cursor = useDashboard((s) => s.year);
+  const panel = useDashboard((s) => s.explorerPanel);
+  const setPanel = useDashboard((s) => s.setExplorerPanel);
   const setYear = useDashboard((s) => s.setYear);
   const overlays = new Set(settings.overlays);
   const wantsContext = settings.overlays.some((o) => o === "enso" || o === "volcanoes");
@@ -354,93 +357,104 @@ function Explorer({ history, vital }: { history: VitalHistory; vital: VitalSign 
           </p>
         </div>
 
-        <aside className="xp-side">
-          <section>
-            <h3 className="xp-side__title">Data</h3>
-            <ul className="xp-list">
-              {history.series.map((s) => {
-                const on = settings.visible[s.id] ?? s.visible;
-                const blocked = settings.display === "change" && s.resolution === "multiYear";
-                const why = blocked ? "Hidden in Change / yr: each value averages decades or centuries, so a yearly change is not meaningful." : null;
-                return (
-                  <li key={s.id}>
-                    <label
-                      className={`xp-toggle${on && !blocked ? "" : " is-off"}`}
-                      title={[why, s.note, `${s.source.name} · ${s.source.publisher}`].filter(Boolean).join("\n")}
-                    >
-                      <input type="checkbox" checked={on && !blocked} disabled={blocked} onChange={() => toggleSeries(s)} />
-                      <span className={`xp-key xp-key--${s.role}`} style={{ color: colors.get(s.id) }} />
-                      <span className="xp-toggle__label">{s.label}</span>
-                      <EvidenceBadge evidence={s.evidence} compact />
-                      <span className="xp-toggle__span muted mono">{spanLabel(s)}</span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+        <aside className="xp-side" aria-label="About this chart">
+          <div className="xp-side__tabs">
+            <Segmented
+              label="Side panel"
+              value={panel}
+              onChange={setPanel}
+              options={[
+                { value: "facts", label: "Key facts", title: "What the data says, in plain language, and how each figure is worked out" },
+                { value: "layers", label: "Data & layers", title: "Switch datasets and context layers on and off" },
+              ]}
+            />
+          </div>
 
-          <section>
-            <h3 className="xp-side__title">Context</h3>
-            {mode === "seasonal" && <p className="muted xp-side__note">Context layers apply to the timeline view.</p>}
-            <ul className="xp-list">
-              {history.overlays.map((o) => {
-                const info = OVERLAY_INFO[o];
-                const disabled = mode === "seasonal" || (o === "references" && settings.display === "change");
-                return (
-                  <li key={o}>
-                    <label className={`xp-toggle${overlays.has(o) && !disabled ? "" : " is-off"}`} title={info.hint}>
-                      <input type="checkbox" checked={overlays.has(o)} disabled={disabled} onChange={() => toggleOverlay(o)} />
-                      <span className={`xp-swatch xp-swatch--${o}`} />
-                      <span className="xp-toggle__label">
-                        {o === "trend" && history.acceleration ? "Trend and acceleration" : info.label}
-                      </span>
-                      {!inView(info.from) && <span className="muted xp-toggle__span">from {info.from}</span>}
-                    </label>
-                    {o === "events" && overlays.has("events") && !disabled && (
-                      <div className="xp-chips">
-                        {EVENT_KINDS.map((k) => {
-                          const active = settings.eventKinds.includes(k.kind);
-                          return (
-                            <button
-                              key={k.kind}
-                              type="button"
-                              className={`xp-chip${active ? " is-active" : ""}`}
-                              aria-pressed={active}
-                              onClick={() =>
-                                update({ eventKinds: active ? settings.eventKinds.filter((x) => x !== k.kind) : [...settings.eventKinds, k.kind] })
-                              }
-                            >
-                              <svg width="8" height="8" aria-hidden="true">
-                                <circle cx="4" cy="4" r="3" className={`tl-glyph tl-glyph--${k.kind}`} />
-                              </svg>
-                              {k.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+          {panel === "facts" && (
+            <>
+              {history.story && (
+                <section aria-label="Key facts">
+                  <KeyFacts story={history.story} />
+                </section>
+              )}
+              <About history={history} vital={vital} />
+            </>
+          )}
 
-          <section>
-            <h3 className="xp-side__title">About</h3>
-            <p className="xp-side__text">{history.explainer}</p>
-            {vital?.method && <p className="xp-side__text muted">{vital.method}</p>}
-            <ul className="xp-sources">
-              {[...new Map(history.series.map((s) => [s.source.url, s.source])).values()].map((src) => (
-                <li key={src.url}>
-                  <a href={src.url} target="_blank" rel="noreferrer">
-                    {src.name}
-                  </a>
-                  <span className="muted"> · {src.publisher}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {panel === "layers" && (
+            <>
+              <section>
+                <h3 className="xp-side__title">Data</h3>
+                <ul className="xp-list">
+                  {history.series.map((s) => {
+                    const on = settings.visible[s.id] ?? s.visible;
+                    const blocked = settings.display === "change" && s.resolution === "multiYear";
+                    const why = blocked ? "Hidden in Change / yr: each value averages decades or centuries, so a yearly change is not meaningful." : null;
+                    return (
+                      <li key={s.id}>
+                        <label
+                          className={`xp-toggle${on && !blocked ? "" : " is-off"}`}
+                          title={[why, s.note, `${s.source.name} · ${s.source.publisher}`].filter(Boolean).join("\n")}
+                        >
+                          <input type="checkbox" checked={on && !blocked} disabled={blocked} onChange={() => toggleSeries(s)} />
+                          <span className={`xp-key xp-key--${s.role}`} style={{ color: colors.get(s.id) }} />
+                          <span className="xp-toggle__label">{s.label}</span>
+                          <EvidenceBadge evidence={s.evidence} compact />
+                          <span className="xp-toggle__span muted mono">{spanLabel(s)}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="xp-side__title">Context</h3>
+                {mode === "seasonal" && <p className="muted xp-side__note">Context layers apply to the timeline view.</p>}
+                <ul className="xp-list">
+                  {history.overlays.map((o) => {
+                    const info = OVERLAY_INFO[o];
+                    const disabled = mode === "seasonal" || (o === "references" && settings.display === "change");
+                    return (
+                      <li key={o}>
+                        <label className={`xp-toggle${overlays.has(o) && !disabled ? "" : " is-off"}`} title={info.hint}>
+                          <input type="checkbox" checked={overlays.has(o)} disabled={disabled} onChange={() => toggleOverlay(o)} />
+                          <span className={`xp-swatch xp-swatch--${o}`} />
+                          <span className="xp-toggle__label">
+                            {o === "trend" && history.acceleration ? "Trend and acceleration" : info.label}
+                          </span>
+                          {!inView(info.from) && <span className="muted xp-toggle__span">from {info.from}</span>}
+                        </label>
+                        {o === "events" && overlays.has("events") && !disabled && (
+                          <div className="xp-chips">
+                            {EVENT_KINDS.map((k) => {
+                              const active = settings.eventKinds.includes(k.kind);
+                              return (
+                                <button
+                                  key={k.kind}
+                                  type="button"
+                                  className={`xp-chip${active ? " is-active" : ""}`}
+                                  aria-pressed={active}
+                                  onClick={() =>
+                                    update({ eventKinds: active ? settings.eventKinds.filter((x) => x !== k.kind) : [...settings.eventKinds, k.kind] })
+                                  }
+                                >
+                                  <svg width="8" height="8" aria-hidden="true">
+                                    <circle cx="4" cy="4" r="3" className={`tl-glyph tl-glyph--${k.kind}`} />
+                                  </svg>
+                                  {k.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </>
+          )}
         </aside>
       </div>
     </section>
@@ -450,20 +464,56 @@ function Explorer({ history, vital }: { history: VitalHistory; vital: VitalSign 
 function Hero({ vital, history }: { vital: VitalSign | undefined; history: VitalHistory }) {
   const live = useLiveValue(vital?.live);
   const value = live ?? vital?.value ?? null;
+  const now = vital && (
+    <>
+      <span className={`mono ${history.story ? "xp-hero__now" : "xp-hero__number"}`}>{formatNumber(value, live !== null ? 3 : vital.decimals)}</span>
+      <span className="vital__unit">{vital.unit}</span>
+      <EvidenceBadge evidence={vital.evidence} compact />
+      <span className="muted xp-hero__context">
+        {vital.context ? `${vital.context} · ` : ""}as of {formatAsOf(vital.asOf)}
+      </span>
+    </>
+  );
+  // With a story, the sentence leads and the latest reading sits beside the title:
+  // the same number is already large on the selected tab above.
+  if (history.story)
+    return (
+      <div className="xp-hero">
+        <div className="xp-hero__value">
+          <h2 className="xp-hero__title">{history.label}</h2>
+          {now}
+        </div>
+        <Headline story={history.story} />
+      </div>
+    );
   return (
     <div className="xp-hero">
       <h2 className="xp-hero__title">{history.label}</h2>
-      {vital && (
-        <div className="xp-hero__value">
-          <span className="xp-hero__number mono">{formatNumber(value, live !== null ? 3 : vital.decimals)}</span>
-          <span className="vital__unit">{vital.unit}</span>
-          <EvidenceBadge evidence={vital.evidence} compact />
-          <span className="muted xp-hero__context">
-            {vital.context ? `${vital.context} · ` : ""}as of {formatAsOf(vital.asOf)}
-          </span>
-        </div>
-      )}
+      {vital && <div className="xp-hero__value">{now}</div>}
     </div>
+  );
+}
+
+/** What the measure is, how it is worked out, and where every series comes from. */
+function About({ history, vital }: { history: VitalHistory; vital: VitalSign | undefined }) {
+  return (
+    <section>
+      <h3 className="xp-side__title">About this measure</h3>
+      <p className="xp-side__text">{history.explainer}</p>
+      {vital?.method && <p className="xp-side__text muted">{vital.method}</p>}
+      <h3 className="xp-side__title">Sources</h3>
+      <ul className="xp-sources">
+        {[...new Map(history.series.map((s) => [s.source.url, s])).values()].map((s) => (
+          <li key={s.source.url}>
+            <EvidenceBadge evidence={s.evidence} compact />{" "}
+            <a href={s.source.url} target="_blank" rel="noreferrer">
+              {s.source.name}
+            </a>
+            <span className="muted"> · {s.source.publisher}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

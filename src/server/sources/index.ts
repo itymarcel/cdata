@@ -1,4 +1,6 @@
 import type { SourceDefinition } from "./types.ts";
+import { climateActionSource } from "./action.ts";
+import { tradeSources } from "./trade.ts";
 import { ch4Source, co2Source } from "./atmosphere.ts";
 import { climateLawsSource, copsSource, disasterAlertsSource, wwaStudiesSource } from "./events.ts";
 import { carbonMajorsSource, igccSource, ndcTargetsSource, subsidiesSource } from "./policy.ts";
@@ -47,4 +49,6 @@ export const sources: SourceDefinition<unknown>[] = [
   seaLevelLongSource,
   ensoSource,
   volcanoesSource,
+  climateActionSource,
+  ...tradeSources,
 ] as SourceDefinition<unknown>[];

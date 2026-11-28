@@ -12,6 +12,9 @@ coverage/
 # SQLite cache of upstream data, rebuilt on first start (includes -shm/-wal)
 data/*.sqlite*
 
+# Model files for the in-browser reader, proxied from Hugging Face and GitHub
+data/llm/
+
 # Carbon Majors data: non-commercial licence, not for redistribution
 data/carbon-majors/
 
