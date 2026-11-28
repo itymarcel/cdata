@@ -71,7 +71,8 @@ export const useSources = (enabled = true) =>
   useQuery({
     queryKey: ["sources"],
     queryFn: () => get<SourceStatus[]>("/api/sources"),
-    refetchInterval: MINUTE,
+    // Every 5 s while the server is still loading a source for the first time (the header's loader shows it).
+    refetchInterval: (q) => (q.state.data?.some((s) => s.connected && !s.fetchedAt && !s.error) ? 5_000 : MINUTE),
     enabled,
   });
 

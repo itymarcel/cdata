@@ -32,11 +32,28 @@
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
-/* The selected tab joins the panel below it. */
-.vital.is-active {
-  background: var(--surface-2);
+/* The selected tab is filled with the accent; everything in it is drawn in the inverted ink. */
+.vital.is-active,
+.vital.is-active:hover {
+  background: var(--accent);
   border-color: var(--accent);
-  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.vital.is-active :is(.vital__label, .vital__number, .vital__map-title, .vital__context, .evidence, .evidence > span:first-child) {
+  color: var(--on-accent);
+}
+.vital.is-active :is(.vital__unit, .vital__asof) {
+  color: var(--on-accent);
+  opacity: 0.7;
+}
+.vital.is-active .sparkline path:first-of-type {
+  fill: var(--on-accent);
+}
+.vital.is-active .sparkline path:nth-of-type(2) {
+  stroke: var(--on-accent);
+}
+.vital.is-active .sparkline circle {
+  fill: var(--on-accent);
+  stroke: var(--accent);
 }
 .vital__globe {
   fill: none;
@@ -45,7 +62,7 @@
   align-self: center;
 }
 .vital.is-active .vital__globe {
-  stroke: var(--accent);
+  stroke: var(--on-accent);
 }
 .vital__map-title {
   font-size: 22px;

@@ -636,13 +636,14 @@
   color: var(--text-secondary);
   background: none;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 .xp-note-card__tabs button[aria-selected="true"] {
-  color: var(--text-primary);
+  color: var(--on-accent);
   border-color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--accent);
+  font-weight: 600;
 }
 .xp-note-card__close {
   flex: none;

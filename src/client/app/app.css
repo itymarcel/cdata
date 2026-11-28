@@ -79,6 +79,33 @@
   align-items: center;
   gap: 8px;
 }
+/* Data on its way: a loader that turns and slowly breathes. */
+.data-activity {
+  display: inline-flex;
+  color: var(--accent);
+  animation:
+    data-activity-spin 1s linear infinite,
+    data-activity-pulse 2.4s ease-in-out infinite;
+}
+@keyframes data-activity-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes data-activity-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .data-activity {
+    animation: data-activity-pulse 2.4s ease-in-out infinite;
+  }
+}
 .country-pill {
   background: var(--accent-soft);
   border: 1px solid var(--accent);

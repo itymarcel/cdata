@@ -26,6 +26,8 @@
   /* Accent: a thermal orange used sparingly for focus and "now" */
   --accent: #ff8a3d;
   --accent-soft: rgba(255, 138, 61, 0.14);
+  /* Ink on a filled accent (selected tabs and buttons): the page background, 8.8:1 on --accent */
+  --on-accent: #07090c;
 
   /* Categorical (validated, dark): fixed order, never cycled */
   --series-1: #3987e5; /* blue */
